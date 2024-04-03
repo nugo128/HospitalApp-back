@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace Hospital.Models
 {
@@ -16,5 +17,8 @@ namespace Hospital.Models
 
         [Required, MinLength(8)]
         public string Password { get; set; } = string.Empty;
+        [FromForm(Name = "image")]
+        public IFormFile Image { get; set; }
+
     }
 }

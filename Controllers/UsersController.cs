@@ -5,16 +5,24 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using HospitalApp.Models;
 using Hospital.Models;
+using Microsoft.AspNetCore.Identity;
+using MimeKit;
+using MimeKit.Text;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using System.Security.Cryptography;
-using HospitalApp.Services;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authorization;
+using HospitalApp.Models;
+using HospitalApp.Services;
 
-namespace HospitalApp.Controllers
+namespace Hospital.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -23,7 +31,6 @@ namespace HospitalApp.Controllers
         private readonly UserContext _context;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
-
         public UsersController(UserContext context, IEmailService emailService, IConfiguration configuration)
         {
             _configuration = configuration;
@@ -46,12 +53,14 @@ namespace HospitalApp.Controllers
                     LastName = u.LastName,
                     Role = u.Role,
                     Rating = u.Rating,
-                    Categories = u.CategoryUsers.Select(uc => uc.Category).ToList()
+                    Categories = u.CategoryUsers.Select(uc => uc.Category).ToList(),
+                    Image = u.ProfilePicture
                 })
                 .ToListAsync();
 
             return Ok(usersWithCategories);
         }
+
 
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -84,26 +93,23 @@ namespace HospitalApp.Controllers
             return NoContent();
         }
 
-
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            using (var hmac = new HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            }
-
-        }
-        private string CreateRandomToken()
-        {
-            return Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
-        }
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(UserRegisterRequest request)
+        public async Task<ActionResult<User>> PostUser([FromForm] UserRegisterRequest request)
         {
             CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
+
+            byte[] imageData = null;
+            if (request.Image != null)
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await request.Image.CopyToAsync(memoryStream);
+                    imageData = memoryStream.ToArray();
+                }
+            }
+
             var user = new User
             {
                 Name = request.Name,
@@ -113,51 +119,46 @@ namespace HospitalApp.Controllers
                 PasswordHash = passwordHash,
                 PasswordSalt = passwordSalt,
                 VerificationToken = CreateRandomToken(),
+                ProfilePicture = imageData
             };
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+
             var verificationUrl = "http://localhost:4200/register/verify?token=" + user.VerificationToken;
             await _emailService.SendEmailAsync(user.Email, "Verify your account", verificationUrl);
 
             return CreatedAtAction("GetUser", new { id = user.Id }, user);
         }
-
-
-        [HttpPost("verify")]
-        public async Task<ActionResult<User>> Verify(string token)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<UserWithCategories>> GetUserWithCategories(int id)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.VerificationToken == token);
-            if (user == null)
+            var userWithCategories = await _context.Users
+                .Where(u => u.Id == id)
+                .Include(u => u.CategoryUsers)
+                .ThenInclude(uc => uc.Category)
+                .Select(u => new UserWithCategories
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    Email = u.Email,
+                    LastName = u.LastName,
+                    Role = u.Role,
+                    Rating = u.Rating,
+                    Categories = u.CategoryUsers.Select(uc => uc.Category).ToList(),
+                    Image = u.ProfilePicture
+                })
+                .FirstOrDefaultAsync();
+
+            if (userWithCategories == null)
             {
-                return BadRequest(new { message = "Invalid token" });
-            }
-            user.IsActive = true;
-            user.VerifiedAt = DateTime.Now;
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "User verified" });
-        }
-        private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
-        {
-            using (var hmac = new HMACSHA512(passwordSalt))
-            {
-                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-
-                return computedHash.SequenceEqual(passwordHash);
+                return NotFound();
             }
 
+            return Ok(userWithCategories);
         }
-        private string CreateToken(User user)
-        {
-            List<Claim> claims = new List<Claim> {
-                new Claim(ClaimTypes.Email, user.Email),
-            };
-            var Key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-            var cred = new SigningCredentials(Key, SecurityAlgorithms.HmacSha512Signature);
-            var token = new JwtSecurityToken(_configuration["Jwt:Issuer"], _configuration["Jwt:Audience"], null, expires: DateTime.Now.AddDays(1), signingCredentials: cred);
-            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-            return jwt;
-        }
+
+
         [HttpPost("login")]
         public async Task<ActionResult<User>> Login(UserLoginRequest request)
         {
@@ -178,7 +179,56 @@ namespace HospitalApp.Controllers
 
             string token = CreateToken(user);
 
-            return Ok(new { token });
+            return Ok(new { token, user });
+        }
+        private string CreateToken(User user)
+        {
+            List<Claim> claims = new List<Claim> {
+                new Claim(ClaimTypes.Email, user.Email),
+            };
+            var Key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var cred = new SigningCredentials(Key, SecurityAlgorithms.HmacSha512Signature);
+            var token = new JwtSecurityToken(_configuration["Jwt:Issuer"], _configuration["Jwt:Audience"], null, expires: DateTime.Now.AddDays(1), signingCredentials: cred);
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+            return jwt;
+        }
+        [HttpPost("verify")]
+        public async Task<ActionResult<User>> Verify(string token)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.VerificationToken == token);
+            if (user == null)
+            {
+                return BadRequest(new { message = "Invalid token" });
+            }
+            user.IsActive = true;
+            user.VerifiedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "User verified" });
+        }
+
+        private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
+        {
+            using (var hmac = new HMACSHA512(passwordSalt))
+            {
+                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+
+                return computedHash.SequenceEqual(passwordHash);
+            }
+
+        }
+        private string CreateRandomToken()
+        {
+            return Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
+        }
+        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        {
+            using (var hmac = new HMACSHA512())
+            {
+                passwordSalt = hmac.Key;
+                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            }
+
         }
 
         // DELETE: api/Users/5

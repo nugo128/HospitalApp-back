@@ -1,7 +1,8 @@
-﻿using Hospital.Models;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Policy;
 
-namespace HospitalApp.Models
+namespace Hospital.Models
 {
     public class User
     {
@@ -15,7 +16,7 @@ namespace HospitalApp.Models
         public int Rating { get; set; } = 0;
         public string IDNumber { get; set; } = "";
         public string Email { get; set; } = "";
-
+        public byte[]? ProfilePicture { get; set; }
         public byte[] PasswordHash { get; set; } = new byte[32];
 
         public byte[] PasswordSalt { get; set; } = new byte[32];
@@ -28,7 +29,7 @@ namespace HospitalApp.Models
 
         public DateTime? ActivationCodeExpiration { get; set; }
 
-
         public ICollection<CategoryUser> CategoryUsers { get; set; }
+
     }
 }
