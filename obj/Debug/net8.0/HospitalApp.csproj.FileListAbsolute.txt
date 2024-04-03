@@ -272,3 +272,4 @@ C:\Users\Nugo\Desktop\Project\HospitalApp\HospitalApp\obj\Debug\net8.0\refint\Ho
 C:\Users\Nugo\Desktop\Project\HospitalApp\HospitalApp\obj\Debug\net8.0\HospitalApp.pdb
 C:\Users\Nugo\Desktop\Project\HospitalApp\HospitalApp\obj\Debug\net8.0\HospitalApp.genruntimeconfig.cache
 C:\Users\Nugo\Desktop\Project\HospitalApp\HospitalApp\obj\Debug\net8.0\ref\HospitalApp.dll
+C:\Users\Nugo\Desktop\Project\HospitalApp\HospitalApp\obj\Debug\net8.0\HospitalApp.sourcelink.json

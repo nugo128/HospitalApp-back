@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Hospital.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace HospitalApp.Models
 {
@@ -26,5 +27,8 @@ namespace HospitalApp.Models
         public string? PasswordResetToken { get; set; } = "";
 
         public DateTime? ActivationCodeExpiration { get; set; }
+
+
+        public ICollection<CategoryUser> CategoryUsers { get; set; }
     }
 }

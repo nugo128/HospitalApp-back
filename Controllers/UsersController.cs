@@ -33,23 +33,24 @@ namespace HospitalApp.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserWithCategories>>> GetAllUsersWithCategories()
         {
-            return await _context.Users.ToListAsync();
-        }
+            var usersWithCategories = await _context.Users
+                .Include(u => u.CategoryUsers)
+                .ThenInclude(uc => uc.Category)
+                .Select(u => new UserWithCategories
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    Email = u.Email,
+                    LastName = u.LastName,
+                    Role = u.Role,
+                    Rating = u.Rating,
+                    Categories = u.CategoryUsers.Select(uc => uc.Category).ToList()
+                })
+                .ToListAsync();
 
-        // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return user;
+            return Ok(usersWithCategories);
         }
 
         // PUT: api/Users/5
