@@ -18,7 +18,7 @@ namespace Hospital.Models
         [Required, MinLength(8)]
         public string Password { get; set; } = string.Empty;
         [FromForm(Name = "image")]
-        public IFormFile Image { get; set; }
+        public IFormFile? Image { get; set; }
 
     }
 }

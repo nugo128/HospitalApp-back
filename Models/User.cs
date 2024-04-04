@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using HospitalApp.Models;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Policy;
 
@@ -31,5 +32,7 @@ namespace Hospital.Models
 
         public ICollection<CategoryUser> CategoryUsers { get; set; }
 
+
+        public ICollection<Booking> Bookings { get; set; }
     }
 }

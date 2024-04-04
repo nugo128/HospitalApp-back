@@ -181,14 +181,36 @@ namespace Hospital.Controllers
 
             return Ok(new { token, user });
         }
+        [Authorize] 
+        [HttpGet("loggedInUser")]
+        public async Task<ActionResult<User>> GetLoggedInUser()
+        {
+            // Extract the user's identifier from the JWT token
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest("User not found in token.");
+            }
+
+            // Retrieve the user information from your data source using the user identifier
+            var user = await _context.Users.FindAsync(int.Parse(userId));
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            // Return the user information in the response
+            return Ok(user);
+        }
         private string CreateToken(User user)
         {
             List<Claim> claims = new List<Claim> {
                 new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             };
             var Key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var cred = new SigningCredentials(Key, SecurityAlgorithms.HmacSha512Signature);
-            var token = new JwtSecurityToken(_configuration["Jwt:Issuer"], _configuration["Jwt:Audience"], null, expires: DateTime.Now.AddDays(1), signingCredentials: cred);
+            var token = new JwtSecurityToken(_configuration["Jwt:Issuer"], _configuration["Jwt:Audience"], claims, expires: DateTime.Now.AddDays(1), signingCredentials: cred);
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
             return jwt;
         }
