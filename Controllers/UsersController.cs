@@ -21,6 +21,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using HospitalApp.Models;
 using HospitalApp.Services;
+using Microsoft.AspNetCore.Identity.Data;
 
 namespace Hospital.Controllers
 {
@@ -122,13 +123,15 @@ namespace Hospital.Controllers
                 ProfilePicture = imageData
             };
 
+            user.ActivationCodeExpiration = DateTime.Now.AddMinutes(30);
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
             var verificationUrl = "http://localhost:4200/register/verify?token=" + user.VerificationToken;
             await _emailService.SendEmailAsync(user.Email, "Verify your account", verificationUrl);
 
-            return CreatedAtAction("GetUser", new { id = user.Id }, user);
+            return Ok(user);
         }
         [HttpGet("{id}")]
         public async Task<ActionResult<UserWithCategories>> GetUserWithCategories(int id)
@@ -185,21 +188,18 @@ namespace Hospital.Controllers
         [HttpGet("loggedInUser")]
         public async Task<ActionResult<User>> GetLoggedInUser()
         {
-            // Extract the user's identifier from the JWT token
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
                 return BadRequest("User not found in token.");
             }
 
-            // Retrieve the user information from your data source using the user identifier
             var user = await _context.Users.FindAsync(int.Parse(userId));
             if (user == null)
             {
                 return NotFound("User not found.");
             }
 
-            // Return the user information in the response
             return Ok(user);
         }
         private string CreateToken(User user)
@@ -222,13 +222,74 @@ namespace Hospital.Controllers
             {
                 return BadRequest(new { message = "Invalid token" });
             }
+
+            if (user.ActivationCodeExpiration.HasValue && user.ActivationCodeExpiration <= DateTime.Now)
+            {
+                return BadRequest(new { message = "Activation code expired" });
+            }
             user.IsActive = true;
             user.VerifiedAt = DateTime.Now;
+            user.VerificationToken = null; 
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "User verified" });
         }
 
+        [HttpPost("forgot-password")]
+        public async Task<ActionResult> ForgotPassword(string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+            {
+                return Ok(new { message = "Password reset email sent if the email exists in our records" });
+            }
+
+            var resetToken = CreateRandomCode();
+            user.PasswordResetToken = resetToken;
+            user.PasswordResetExpiration = DateTime.Now.AddMinutes(5);
+            await _context.SaveChangesAsync();
+
+            var resetUrl = $"Here is your reset code: {resetToken}";
+            await _emailService.SendEmailAsync(email, "Reset your password", resetUrl);
+
+            return Ok(new { message = "Password reset email sent" });
+        }
+        [HttpPost("reset-password")]
+        public async Task<ActionResult> ResetPassword(string token, HospitalApp.Models.ResetPasswordRequest resetPasswordRequest)
+        {
+            if (resetPasswordRequest == null || string.IsNullOrEmpty(resetPasswordRequest.Password) || string.IsNullOrEmpty(resetPasswordRequest.RepeatPassword))
+            {
+                return BadRequest(new { message = "Password and repeat password are required" });
+            }
+
+            if (resetPasswordRequest.Password != resetPasswordRequest.RepeatPassword)
+            {
+                return BadRequest(new { message = "Passwords do not match" });
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == token);
+            if (user == null || IsTokenExpired(user.PasswordResetExpiration))
+            {
+                return BadRequest(new { message = "Invalid or expired token" });
+            }
+
+            CreatePasswordHash(resetPasswordRequest.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            user.PasswordHash = passwordHash;
+            user.PasswordSalt = passwordSalt;
+            user.PasswordResetToken = null;
+            user.PasswordResetExpiration = null;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Password reset successfully" });
+        }
+
+
+
+
+        private bool IsTokenExpired(DateTime? expiration)
+        {
+            return expiration.HasValue && expiration <= DateTime.Now;
+        }
         private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
         {
             using (var hmac = new HMACSHA512(passwordSalt))
@@ -239,6 +300,15 @@ namespace Hospital.Controllers
             }
 
         }
+        private string CreateRandomCode()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, 6)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+
         private string CreateRandomToken()
         {
             return Convert.ToHexString(RandomNumberGenerator.GetBytes(64));

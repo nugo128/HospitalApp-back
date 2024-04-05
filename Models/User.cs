@@ -27,6 +27,7 @@ namespace Hospital.Models
         public string? VerificationToken { get; set; } = "";
         public DateTime? VerifiedAt { get; set; }
         public string? PasswordResetToken { get; set; } = "";
+        public DateTime? PasswordResetExpiration { get; set; }
 
         public DateTime? ActivationCodeExpiration { get; set; }
 
