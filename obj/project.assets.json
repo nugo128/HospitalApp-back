@@ -8662,11 +8662,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Nugo\\Desktop\\Project\\HospitalApp\\HospitalApp\\HospitalApp.csproj",
+      "projectUniqueName": "C:\\Users\\Nugo\\Source\\Repos\\HospitalApp-back\\HospitalApp.csproj",
       "projectName": "HospitalApp",
-      "projectPath": "C:\\Users\\Nugo\\Desktop\\Project\\HospitalApp\\HospitalApp\\HospitalApp.csproj",
+      "projectPath": "C:\\Users\\Nugo\\Source\\Repos\\HospitalApp-back\\HospitalApp.csproj",
       "packagesPath": "C:\\Users\\Nugo\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Nugo\\Desktop\\Project\\HospitalApp\\HospitalApp\\obj\\",
+      "outputPath": "C:\\Users\\Nugo\\Source\\Repos\\HospitalApp-back\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Nugo\\AppData\\Roaming\\NuGet\\NuGet.Config",

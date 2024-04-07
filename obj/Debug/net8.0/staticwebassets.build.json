@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "BOnLdnwLNBKrU2pb8cPMO8aI2mMqr/1ES7aGhI6opd0=",
+  "Hash": "1zzHmRUXSKo7okwexcqWCrFotyCY716YCILuFiD2jlE=",
   "Source": "HospitalApp",
   "BasePath": "_content/HospitalApp",
   "Mode": "Default",
@@ -47,10 +47,10 @@
       "OriginalItemSpec": "C:\\Users\\Nugo\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.3\\staticwebassets\\QuickGrid.razor.js"
     },
     {
-      "Identity": "C:\\Users\\Nugo\\Desktop\\Project\\HospitalApp\\HospitalApp\\obj\\Debug\\net8.0\\scopedcss\\bundle\\HospitalApp.styles.css",
+      "Identity": "C:\\Users\\Nugo\\Source\\Repos\\HospitalApp-back\\obj\\Debug\\net8.0\\scopedcss\\bundle\\HospitalApp.styles.css",
       "SourceId": "HospitalApp",
       "SourceType": "Computed",
-      "ContentRoot": "C:\\Users\\Nugo\\Desktop\\Project\\HospitalApp\\HospitalApp\\obj\\Debug\\net8.0\\scopedcss\\bundle\\",
+      "ContentRoot": "C:\\Users\\Nugo\\Source\\Repos\\HospitalApp-back\\obj\\Debug\\net8.0\\scopedcss\\bundle\\",
       "BasePath": "_content/HospitalApp",
       "RelativePath": "HospitalApp.styles.css",
       "AssetKind": "All",
@@ -63,7 +63,7 @@
       "AssetTraitValue": "ApplicationBundle",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\Nugo\\Desktop\\Project\\HospitalApp\\HospitalApp\\obj\\Debug\\net8.0\\scopedcss\\bundle\\HospitalApp.styles.css"
+      "OriginalItemSpec": "C:\\Users\\Nugo\\Source\\Repos\\HospitalApp-back\\obj\\Debug\\net8.0\\scopedcss\\bundle\\HospitalApp.styles.css"
     }
   ]
 }
