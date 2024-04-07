@@ -28,6 +28,9 @@ namespace Hospital.Models
         public DateTime? VerifiedAt { get; set; }
         public string? PasswordResetToken { get; set; } = "";
         public DateTime? PasswordResetExpiration { get; set; }
+        public bool TwoStepActive { get; set; } = false;
+        public string? TwoStepToken { get; set; } = "";
+        public DateTime? TwoStepExpiration { get; set; }
 
         public DateTime? ActivationCodeExpiration { get; set; }
 
