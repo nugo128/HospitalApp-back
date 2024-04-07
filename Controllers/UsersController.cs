@@ -150,7 +150,7 @@ namespace Hospital.Controllers
 
 
         [HttpPost("login")]
-        public async Task<ActionResult<User>> Login(UserLoginRequest request)
+        public async Task<ActionResult> Login(UserLoginRequest request)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
             if (user == null)
@@ -160,16 +160,64 @@ namespace Hospital.Controllers
 
             if (!VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
             {
-                return BadRequest("Password is incorrect");
+                return BadRequest("Password is incorrect.");
             }
+
             if (user.VerifiedAt == null)
             {
                 return BadRequest("Not verified!");
             }
 
+            if (user.TwoStepActive)
+            {
+                if (user.TwoStepExpiration.HasValue && (DateTime.UtcNow - user.TwoStepExpiration.Value).TotalMinutes < -4)
+                {
+                    return BadRequest("Please wait one minute");
+                }
+
+                user.TwoStepToken = CreateRandomCode();
+                user.TwoStepExpiration = DateTime.UtcNow.AddMinutes(5);
+
+
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+
+                await _emailService.SendEmailAsync(user.Email, "Verify your account", user.TwoStepToken);
+
+                return Ok(new { Message = "Code send" });
+            }
+
+
             string token = CreateToken(user);
 
-            return Ok(new { token, user });
+            return Ok(new { Token = token });
+        }
+
+        [HttpPost("verify-two-step")]
+        public async Task<ActionResult> VerifyTwoStepCode(string email, string code)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null) return BadRequest("User not found.");
+            if (!user.TwoStepActive || string.IsNullOrEmpty(user.TwoStepToken)) return BadRequest("Two-step verification is not enabled or no verification code is pending.");
+
+
+            if (!user.TwoStepExpiration.HasValue || user.TwoStepExpiration < DateTime.UtcNow)
+            {
+                return BadRequest("The verification code is expired. Please log in again to generate a new code.");
+            }
+
+            if (user.TwoStepToken != code)
+            {
+                return BadRequest("Invalid verification code.");
+            }
+
+            user.TwoStepToken = null;
+            user.TwoStepExpiration = null;
+            await _context.SaveChangesAsync();
+
+            var token = CreateToken(user);
+            return Ok(new { Token = token });
         }
         [Authorize] 
         [HttpGet("loggedInUser")]
