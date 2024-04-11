@@ -190,7 +190,7 @@ namespace Hospital.Controllers
 
             string token = CreateToken(user);
 
-            return Ok(new { Token = token });
+            return Ok(new { Token = token, User = user });
         }
 
         [HttpPost("verify-two-step")]
@@ -204,7 +204,7 @@ namespace Hospital.Controllers
 
             if (!user.TwoStepExpiration.HasValue || user.TwoStepExpiration < DateTime.UtcNow)
             {
-                return BadRequest("The verification code is expired. Please log in again to generate a new code.");
+                return BadRequest("The verification code is expired. You can resend code in one minute ");
             }
 
             if (user.TwoStepToken != code)
@@ -217,7 +217,7 @@ namespace Hospital.Controllers
             await _context.SaveChangesAsync();
 
             var token = CreateToken(user);
-            return Ok(new { Token = token });
+            return Ok(new { Token = token, User = user });
         }
         [Authorize] 
         [HttpGet("loggedInUser")]

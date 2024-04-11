@@ -8,7 +8,7 @@ namespace Hospital.Models
         [Required, EmailAddress,]
         public string Email { get; set; } = string.Empty;
 
-        [Required, MinLength(6)]
+        [Required, MinLength(5)]
         public string Name { get; set; } = string.Empty;
         [Required]
         public string LastName { get; set; } = string.Empty;
