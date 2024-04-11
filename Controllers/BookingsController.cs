@@ -48,12 +48,19 @@ namespace HospitalApp.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBooking(int id, Booking booking)
         {
-            if (id != booking.Id)
+            var existingBooking = await _context.Bookings.FindAsync(id);
+
+            if (existingBooking == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(booking).State = EntityState.Modified;
+            // Update the properties of the existing booking
+            existingBooking.UserId = booking.UserId;
+            existingBooking.DoctorId = booking.DoctorId;
+            existingBooking.BookingDate = booking.BookingDate;
+            existingBooking.Time = booking.Time;
+            existingBooking.description = booking.description;
 
             try
             {

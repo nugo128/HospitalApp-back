@@ -10,10 +10,9 @@ namespace HospitalApp.Models
         [Key]
         public int Id { get; set; }
 
-        // Foreign key to link with the User
         public int UserId { get; set; }
 
-        // Navigation property to access the associated user
+
         [ForeignKey("UserId")]
         public User? User { get; set; }
 
