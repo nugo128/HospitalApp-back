@@ -92,6 +92,20 @@ namespace HospitalApp.Controllers
             return CreatedAtAction("GetBooking", new { id = booking.Id }, booking);
         }
 
+        [HttpGet("User/{userId}")]
+        public async Task<ActionResult<IEnumerable<Booking>>> GetBookingsByUserId(int userId)
+        {
+            var bookings = await _context.Bookings
+                .Where(b => b.UserId == userId)
+                .ToListAsync();
+
+            if (bookings == null)
+            {
+                return NotFound("No bookings found for the given user.");
+            }
+
+            return bookings;
+        }
         // DELETE: api/Bookings/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBooking(int id)

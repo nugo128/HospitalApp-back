@@ -18,6 +18,7 @@ namespace Hospital.Models
         public string IDNumber { get; set; } = "";
         public string Email { get; set; } = "";
         public byte[]? ProfilePicture { get; set; }
+        public byte[]? CV {  get; set; }
         public byte[] PasswordHash { get; set; } = new byte[32];
 
         public byte[] PasswordSalt { get; set; } = new byte[32];
@@ -34,9 +35,9 @@ namespace Hospital.Models
 
         public DateTime? ActivationCodeExpiration { get; set; }
 
-        public ICollection<CategoryUser> CategoryUsers { get; set; }
+        public ICollection<CategoryUser>? CategoryUsers { get; set; }
 
 
-        public ICollection<Booking> Bookings { get; set; }
+        public ICollection<Booking>? Bookings { get; set; }
     }
 }

@@ -89,14 +89,39 @@ namespace Hospital.Controllers
             CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
 
             byte[] imageData = null;
+            byte[] CV = null;
+            int categoryId = 0;
+            string role = "user";
             if (request.Image != null)
             {
                 using (var memoryStream = new MemoryStream())
                 {
                     await request.Image.CopyToAsync(memoryStream);
                     imageData = memoryStream.ToArray();
+                    
                 }
+                using (var memoryStream = new MemoryStream())
+                {
+                    await request.CV.CopyToAsync(memoryStream);
+                    CV = memoryStream.ToArray();
+
+                }
+                var existingCategory = await _context.Categories.FirstOrDefaultAsync(c => c.Name == request.Category);
+                if (existingCategory != null)
+                {
+                    categoryId = existingCategory.Id;
+                }
+                else { 
+                var category = new Category { Name = request.Category };
+                _context.Categories.Add(category);
+                await _context.SaveChangesAsync();
+                categoryId = category.Id;
+                
+                }
+
+                role = "doctor";
             }
+                
 
             var user = new User
             {
@@ -107,13 +132,22 @@ namespace Hospital.Controllers
                 PasswordHash = passwordHash,
                 PasswordSalt = passwordSalt,
                 VerificationToken = CreateRandomToken(),
-                ProfilePicture = imageData
+                ProfilePicture = imageData,
+                Role = role,
+                CV = CV,
             };
+
 
             user.ActivationCodeExpiration = DateTime.Now.AddMinutes(30);
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+            if(request.Image != null)
+            {
+                var categoryUser = new CategoryUser { CategoryId = categoryId, UserId = user.Id, Category = null, User = null };
+                _context.CategoryUsers.Add(categoryUser);
+                await _context.SaveChangesAsync();
+            }
 
             var verificationUrl = "http://localhost:4200/register/verify?token=" + user.VerificationToken;
             await _emailService.SendEmailAsync(user.Email, "Verify your account", verificationUrl);

@@ -15,10 +15,15 @@ namespace Hospital.Models
         [Required, Length(11, 11)]
         public string IDNumber { get; set; } = string.Empty;
 
+        public string? Category {  get; set; } = string.Empty;
+
         [Required, MinLength(8)]
         public string Password { get; set; } = string.Empty;
         [FromForm(Name = "image")]
         public IFormFile? Image { get; set; }
+
+        [FromForm(Name = "CV")]
+        public IFormFile? CV { get; set; }
 
     }
 }
