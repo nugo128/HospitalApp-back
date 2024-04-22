@@ -410,9 +410,9 @@ namespace Hospital.Controllers
         }
         private string CreateRandomCode()
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
             var random = new Random();
-            return new string(Enumerable.Repeat(chars, 6)
+            return new string(Enumerable.Repeat(chars, 4)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
@@ -429,6 +429,79 @@ namespace Hospital.Controllers
                 passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             }
 
+        }
+
+        [HttpPost("change-email")]
+        public async Task<ActionResult> ChangeEmail(int id)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            if (user == null)
+            {
+                return Ok(new { message = "email sent if the user exists in our records" });
+            }
+
+            var resetToken = CreateRandomCode();
+            user.ChangeEmailToken = resetToken;
+            await _context.SaveChangesAsync();
+
+            var resetUrl = $"Here is your reset code: {resetToken}";
+            await _emailService.SendEmailAsync(user.Email, "change your email", resetUrl);
+
+            return Ok(new { message = "Email sent" });
+        }
+        [HttpPost("change-email-verify")]
+        public async Task<ActionResult> ChangeEmailVerify(int id, string code)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            if (user.ChangeEmailToken != code)
+            {
+                return BadRequest(new { message = "Invalid or expired token" });
+            }
+
+            user.ChangeEmailToken = null;
+            user.ChangeEmailTokenVerified = true;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "code verified, you can now set new email" });
+        }
+        [HttpPost("set-email")]
+        public async Task<ActionResult> SetNewEmail(int id, string newEmail)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            if (user == null)
+            {
+                return BadRequest(new { message = "user not found" });
+            }
+
+            if (user.ChangeEmailTokenVerified == false) {
+                return BadRequest(new { message = "current email not verified" });
+            }
+
+            var resetToken = CreateRandomCode();
+            user.NewEmailToken = resetToken;
+            await _context.SaveChangesAsync();
+
+            var resetUrl = $"Here is your reset code: {resetToken}";
+            await _emailService.SendEmailAsync(newEmail, "change your email", resetUrl);
+
+            return Ok(new { message = "Email sent" });
+        }
+        [HttpPost("new-email-verify")]
+        public async Task<ActionResult> NewEmailVerify(int id, string code, string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            if (user.NewEmailToken != code)
+            {
+                return BadRequest(new { message = "Invalid or expired token" });
+            }
+
+            user.Email = email;
+            user.NewEmailTokenVerified = true;
+            user.NewEmailToken = null;
+            user.ChangeEmailTokenVerified = false;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "email changed!" });
         }
 
         // DELETE: api/Users/5

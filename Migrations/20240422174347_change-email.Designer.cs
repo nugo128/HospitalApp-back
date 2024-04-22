@@ -4,6 +4,7 @@ using HospitalApp.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HospitalApp.Migrations
 {
     [DbContext(typeof(UserContext))]
-    partial class UserContextModelSnapshot : ModelSnapshot
+    [Migration("20240422174347_change-email")]
+    partial class changeemail
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,9 +74,6 @@ namespace HospitalApp.Migrations
                     b.Property<string>("ChangeEmailToken")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool?>("ChangeEmailTokenVerified")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -95,9 +95,6 @@ namespace HospitalApp.Migrations
 
                     b.Property<string>("NewEmailToken")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("NewEmailTokenVerified")
-                        .HasColumnType("bit");
 
                     b.Property<byte[]>("PasswordHash")
                         .IsRequired()

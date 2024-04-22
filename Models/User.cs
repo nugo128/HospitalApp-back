@@ -33,6 +33,11 @@ namespace Hospital.Models
         public string? TwoStepToken { get; set; } = "";
         public DateTime? TwoStepExpiration { get; set; }
 
+        public string? ChangeEmailToken { get; set; } = "";
+        public bool? ChangeEmailTokenVerified { get; set; } = false;
+        public string? NewEmailToken { get; set; } = "";
+        public bool? NewEmailTokenVerified { get; set; } = false;
+
         public DateTime? ActivationCodeExpiration { get; set; }
 
         public ICollection<CategoryUser>? CategoryUsers { get; set; }
