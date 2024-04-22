@@ -9,6 +9,8 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using HospitalApp.Models;
 using HospitalApp.Services;
+using Microsoft.AspNetCore.Identity.Data;
+using NuGet.Common;
 
 namespace Hospital.Controllers
 {
@@ -53,32 +55,68 @@ namespace Hospital.Controllers
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<IActionResult> EditUser(int id, [FromForm] UserEditModel userEditModel)
         {
-            if (id != user.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(user).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+                byte[] imageData = null;
 
-            return NoContent();
+                var user = await _context.Users.FindAsync(id);
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                if (userEditModel.Image != null)
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await userEditModel.Image.CopyToAsync(memoryStream);
+                        imageData = memoryStream.ToArray();
+
+                    }
+                    user.ProfilePicture = imageData;
+                    
+                }
+
+                if (userEditModel.IdNumber != null)
+                {
+                    user.IDNumber = userEditModel.IdNumber;
+                }
+
+                if (userEditModel.Email != null)
+                {
+                    user.Email = userEditModel.Email;
+                }
+                if (userEditModel.Password != null)
+                {
+                    if (userEditModel.Password == null || string.IsNullOrEmpty(userEditModel.Password) || string.IsNullOrEmpty(userEditModel.RepeatPassword))
+                    {
+                        return BadRequest(new { message = "Password and repeat password are required" });
+                    }
+
+                    if (userEditModel.Password != userEditModel.RepeatPassword)
+                    {
+                        return BadRequest(new { message = "Passwords do not match" });
+                    }
+
+                    CreatePasswordHash(userEditModel.Password, out byte[] passwordHash, out byte[] passwordSalt);
+                    user.PasswordHash = passwordHash;
+                    user.PasswordSalt = passwordSalt;
+                    await _context.SaveChangesAsync();
+
+                    
+                }
+
+                _context.Entry(user).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "User updated" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Internal server error.");
+            }
         }
 
         // POST: api/Users
@@ -170,7 +208,8 @@ namespace Hospital.Controllers
                     Role = u.Role,
                     Rating = u.Rating,
                     Categories = u.CategoryUsers.Select(uc => uc.Category).ToList(),
-                    Image = u.ProfilePicture
+                    Image = u.ProfilePicture,
+                    IDNumber = u.IDNumber
                 })
                 .FirstOrDefaultAsync();
 

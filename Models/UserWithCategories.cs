@@ -11,6 +11,7 @@ namespace HospitalApp.Models
         public string Role { get; set; }
         public byte[] Image { get; set; }
         public int Rating { get; set; }
+        public string IDNumber { get; set; }
         public List<Category> Categories { get; set; }
     }
 }
