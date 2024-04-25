@@ -44,33 +44,25 @@ namespace HospitalApp.Controllers
 
         // PUT: api/Categories/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategory(int id, Category category)
+        [HttpPost("{id}")]
+        public async Task<IActionResult> UpdateCategory(int id, string name)
         {
-            if (id != category.Id)
-            {
-                return BadRequest();
-            }
+                var category = await _context.Categories.FindAsync(id);
+                if (category == null)
+                {
+                    return NotFound("Category not found.");
+                }
 
-            _context.Entry(category).State = EntityState.Modified;
+                if (!string.IsNullOrEmpty(name))
+                {
+                    category.Name = name;
+                }
 
-            try
-            {
+                _context.Entry(category).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CategoryExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
 
-            return NoContent();
+                return Ok("Category updated successfully.");
+            
         }
 
         // POST: api/Categories
@@ -92,6 +84,11 @@ namespace HospitalApp.Controllers
             if (category == null)
             {
                 return NotFound();
+            }
+            var categoryHasUser = await _context.CategoryUsers.FirstOrDefaultAsync(u => u.CategoryId == id);
+            if (categoryHasUser != null)
+            {
+                return BadRequest(new { message = "You can't delete category that is used" });
             }
 
             _context.Categories.Remove(category);

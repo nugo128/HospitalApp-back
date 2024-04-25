@@ -84,10 +84,6 @@ namespace Hospital.Controllers
                     user.IDNumber = userEditModel.IdNumber;
                 }
 
-                if (userEditModel.Email != null)
-                {
-                    user.Email = userEditModel.Email;
-                }
                 if (userEditModel.Password != null)
                 {
                     if (userEditModel.Password == null || string.IsNullOrEmpty(userEditModel.Password) || string.IsNullOrEmpty(userEditModel.RepeatPassword))
