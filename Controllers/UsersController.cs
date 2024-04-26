@@ -44,7 +44,8 @@ namespace Hospital.Controllers
                     Role = u.Role,
                     Rating = u.Rating,
                     Categories = u.CategoryUsers.Select(uc => uc.Category).ToList(),
-                    Image = u.ProfilePicture
+                    Image = u.ProfilePicture,
+                    Pinned = u.Pinned ?? false
                 })
                 .ToListAsync();
 
@@ -205,7 +206,8 @@ namespace Hospital.Controllers
                     Rating = u.Rating,
                     Categories = u.CategoryUsers.Select(uc => uc.Category).ToList(),
                     Image = u.ProfilePicture,
-                    IDNumber = u.IDNumber
+                    IDNumber = u.IDNumber,
+                    Pinned = u.Pinned ?? false
                 })
                 .FirstOrDefaultAsync();
 
@@ -216,7 +218,22 @@ namespace Hospital.Controllers
 
             return Ok(userWithCategories);
         }
+        [HttpPost("TogglePinned/{id}")]
+        public async Task<IActionResult> TogglePinned(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
 
+            user.Pinned = !user.Pinned;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+
+            return Ok(user);
+        }
 
         [HttpPost("login")]
         public async Task<ActionResult> Login(UserLoginRequest request)

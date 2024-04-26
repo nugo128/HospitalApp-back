@@ -37,6 +37,7 @@ namespace Hospital.Models
         public bool? ChangeEmailTokenVerified { get; set; } = false;
         public string? NewEmailToken { get; set; } = "";
         public bool? NewEmailTokenVerified { get; set; } = false;
+        public bool? Pinned { get; set; } = false;
 
         public DateTime? ActivationCodeExpiration { get; set; }
 
