@@ -10,6 +10,7 @@ namespace HospitalApp.Models
         public string LastName { get; set; }
         public string Role { get; set; }
         public byte[] Image { get; set; }
+        public byte[]? CV { get; set; }
         public int Rating { get; set; }
         public string IDNumber { get; set; }
         public bool Pinned { get; set; }

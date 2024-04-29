@@ -19,6 +19,7 @@ namespace Hospital.Models
         public string Email { get; set; } = "";
         public byte[]? ProfilePicture { get; set; }
         public byte[]? CV {  get; set; }
+        public string? FileName { get; set; }
         public byte[] PasswordHash { get; set; } = new byte[32];
 
         public byte[] PasswordSalt { get; set; } = new byte[32];

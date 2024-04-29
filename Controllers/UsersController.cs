@@ -218,6 +218,19 @@ namespace Hospital.Controllers
 
             return Ok(userWithCategories);
         }
+        [HttpGet("download/{id}")]
+        public async Task<IActionResult> DownloadFile(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            var fileData = user.CV;
+
+            if (fileData == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(File(fileData, "application/octet-stream", user.FileName));
+        }
         [HttpPost("TogglePinned/{id}")]
         public async Task<IActionResult> TogglePinned(int id)
         {
@@ -231,7 +244,7 @@ namespace Hospital.Controllers
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
 
-
+ 
             return Ok(user);
         }
 

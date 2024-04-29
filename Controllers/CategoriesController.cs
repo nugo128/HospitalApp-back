@@ -25,7 +25,16 @@ namespace HospitalApp.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
         {
-            return await _context.Categories.ToListAsync();
+            var categoriesWithCount = await _context.Categories
+               .Select(c => new CategoryWithUserCount
+               {
+                   Id = c.Id,
+                   Name = c.Name,
+                   UserCount = c.CategoryUsers.Count()
+               })
+               .ToListAsync();
+
+            return Ok(categoriesWithCount);
         }
 
         // GET: api/Categories/5
