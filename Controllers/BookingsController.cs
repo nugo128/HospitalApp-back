@@ -57,11 +57,11 @@ namespace HospitalApp.Controllers
                 return NotFound();
             }
 
-            // Update the properties of the existing booking
             existingBooking.UserId = booking.UserId;
             existingBooking.DoctorId = booking.DoctorId;
             existingBooking.BookingDate = booking.BookingDate;
             existingBooking.Time = booking.Time;
+            existingBooking.ExactTime = booking.ExactTime ?? "";
             existingBooking.description = booking.description;
 
             try

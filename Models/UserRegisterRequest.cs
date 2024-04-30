@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using HospitalApp.Migrations;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
 namespace Hospital.Models
@@ -26,6 +27,7 @@ namespace Hospital.Models
 
         [FromForm(Name = "CV")]
         public IFormFile? CV { get; set; }
+        public string? FileName {  get; set; }
 
     }
 }

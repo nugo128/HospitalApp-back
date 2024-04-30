@@ -169,6 +169,8 @@ namespace Hospital.Controllers
                 PasswordSalt = passwordSalt,
                 VerificationToken = CreateRandomToken(),
                 ProfilePicture = imageData,
+                TwoStepActive= true,
+                FileName = request.FileName,
                 Description = request.Description,
                 Role = role,
                 CV = CV,
@@ -369,8 +371,9 @@ namespace Hospital.Controllers
             user.VerifiedAt = DateTime.Now;
             user.VerificationToken = null; 
             await _context.SaveChangesAsync();
+            string jwt = CreateToken(user);
 
-            return Ok(new { message = "User verified" });
+            return Ok(new { message = "User verified", token=jwt });
         }
 
         [HttpPost("forgot-password")]
@@ -474,7 +477,7 @@ namespace Hospital.Controllers
             user.ChangeEmailToken = resetToken;
             await _context.SaveChangesAsync();
 
-            var resetUrl = $"Here is your reset code: {resetToken}";
+            var resetUrl = $"Here is your email verification code:  {resetToken}";
             await _emailService.SendEmailAsync(user.Email, "change your email", resetUrl);
 
             return Ok(new { message = "Email sent" });
@@ -513,7 +516,7 @@ namespace Hospital.Controllers
             user.NewEmailToken = resetToken;
             await _context.SaveChangesAsync();
 
-            var resetUrl = $"Here is your reset code: {resetToken}";
+            var resetUrl = $"Here is your new email verification code: {resetToken}";
             await _emailService.SendEmailAsync(newEmail, "change your email", resetUrl);
 
             return Ok(new { message = "Email sent" });
