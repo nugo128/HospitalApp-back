@@ -1,4 +1,5 @@
 ﻿using Hospital.Models;
+using HospitalApp.Migrations;
 
 namespace HospitalApp.Models
 {
@@ -11,6 +12,7 @@ namespace HospitalApp.Models
         public string Role { get; set; }
         public byte[] Image { get; set; }
         public byte[]? CV { get; set; }
+        public string? Description {get;set;}
         public int Rating { get; set; }
         public string IDNumber { get; set; }
         public bool Pinned { get; set; }

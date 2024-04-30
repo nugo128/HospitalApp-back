@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Hospital.Models;
 using HospitalApp.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HospitalApp.Controllers
 {
@@ -53,6 +54,7 @@ namespace HospitalApp.Controllers
 
         // PUT: api/Categories/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPost("{id}")]
         public async Task<IActionResult> UpdateCategory(int id, string name)
         {
@@ -86,6 +88,7 @@ namespace HospitalApp.Controllers
         }
 
         // DELETE: api/Categories/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {

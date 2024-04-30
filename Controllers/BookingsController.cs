@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HospitalApp.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HospitalApp.Controllers
 {
@@ -45,6 +46,7 @@ namespace HospitalApp.Controllers
 
         // PUT: api/Bookings/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBooking(int id, Booking booking)
         {
@@ -107,6 +109,7 @@ namespace HospitalApp.Controllers
             return bookings;
         }
         // DELETE: api/Bookings/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBooking(int id)
         {

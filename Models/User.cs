@@ -20,6 +20,8 @@ namespace Hospital.Models
         public byte[]? ProfilePicture { get; set; }
         public byte[]? CV {  get; set; }
         public string? FileName { get; set; }
+
+        public string? Description { get; set; }
         public byte[] PasswordHash { get; set; } = new byte[32];
 
         public byte[] PasswordSalt { get; set; } = new byte[32];

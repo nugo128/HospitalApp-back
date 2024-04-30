@@ -55,6 +55,7 @@ namespace Hospital.Controllers
 
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> EditUser(int id, [FromForm] UserEditModel userEditModel)
         {
@@ -168,6 +169,7 @@ namespace Hospital.Controllers
                 PasswordSalt = passwordSalt,
                 VerificationToken = CreateRandomToken(),
                 ProfilePicture = imageData,
+                Description = request.Description,
                 Role = role,
                 CV = CV,
             };
@@ -206,6 +208,7 @@ namespace Hospital.Controllers
                     Rating = u.Rating,
                     Categories = u.CategoryUsers.Select(uc => uc.Category).ToList(),
                     Image = u.ProfilePicture,
+                    Description = u.Description,
                     IDNumber = u.IDNumber,
                     Pinned = u.Pinned ?? false
                 })
@@ -218,6 +221,7 @@ namespace Hospital.Controllers
 
             return Ok(userWithCategories);
         }
+        [Authorize]
         [HttpGet("download/{id}")]
         public async Task<IActionResult> DownloadFile(int id)
         {
@@ -456,7 +460,7 @@ namespace Hospital.Controllers
             }
 
         }
-
+        [Authorize]
         [HttpPost("change-email")]
         public async Task<ActionResult> ChangeEmail(int id)
         {
@@ -475,6 +479,7 @@ namespace Hospital.Controllers
 
             return Ok(new { message = "Email sent" });
         }
+        [Authorize]
         [HttpPost("change-email-verify")]
         public async Task<ActionResult> ChangeEmailVerify(int id, string code)
         {
@@ -490,6 +495,7 @@ namespace Hospital.Controllers
 
             return Ok(new { message = "code verified, you can now set new email" });
         }
+        [Authorize]
         [HttpPost("set-email")]
         public async Task<ActionResult> SetNewEmail(int id, string newEmail)
         {
@@ -512,6 +518,8 @@ namespace Hospital.Controllers
 
             return Ok(new { message = "Email sent" });
         }
+
+        [Authorize]
         [HttpPost("new-email-verify")]
         public async Task<ActionResult> NewEmailVerify(int id, string code, string email)
         {
@@ -531,6 +539,7 @@ namespace Hospital.Controllers
         }
 
         // DELETE: api/Users/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
